@@ -13,8 +13,12 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
-      - run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0'
+      - name: Verify hosted Android SDK
+        run: |
+          test -f "$ANDROID_HOME/platforms/android-35/android.jar"
+          test -x "$ANDROID_HOME/build-tools/35.0.0/aapt"
+      - name: Enable emulator acceleration
+        run: sudo chmod 666 /dev/kvm
       - uses: gradle/actions/setup-gradle@v4
       - uses: reactivecircus/android-emulator-runner@v2
         with:
