@@ -69,7 +69,6 @@ public class MainActivity extends Activity {
             while ((count = input.read(buffer)) != -1) output.write(buffer, 0, count);
             filterScript = output.toString(StandardCharsets.UTF_8.name());
         } catch (IOException e) { throw new IllegalStateException("Missing bundled filters", e); }
-        WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
         root = column(); root.setBackgroundColor(BG);
         if (android.os.Build.VERSION.SDK_INT >= 30) {
             root.setOnApplyWindowInsetsListener((view, insets) -> {
@@ -293,6 +292,7 @@ public class MainActivity extends Activity {
     @SuppressLint("SetJavaScriptEnabled")
     private void openSite(Site site) {
         if (prefs.limitReached(site)) { showLimit(site); return; }
+        WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG);
         closeBrowser(); screen = "browser"; currentSite = site; focusClock = null;
         stage.removeAllViews(); bottom.setVisibility(View.GONE);
         LinearLayout shell = column(); stage.addView(shell);
@@ -392,6 +392,7 @@ public class MainActivity extends Activity {
         recordUsage(); hideFullscreen();
         if (browser != null) {
             browser.stopLoading(); browser.onPause();
+            CookieManager.getInstance().flush();
             if (browser.getParent() instanceof ViewGroup parent) parent.removeView(browser);
             browser.setWebChromeClient(null); browser.setWebViewClient(new WebViewClient()); browser.destroy(); browser = null;
         }
@@ -436,8 +437,9 @@ public class MainActivity extends Activity {
         if (browser != null) {
             browser.evaluateJavascript("document.querySelectorAll('video,audio').forEach(function(m){m.pause()})", null);
             browser.onPause();
+            CookieManager.getInstance().flush();
         }
-        CookieManager.getInstance().flush(); super.onPause();
+        super.onPause();
     }
     @Override protected void onSaveInstanceState(Bundle state) {
         if (currentSite != null) state.putString("site", currentSite.name()); super.onSaveInstanceState(state);
